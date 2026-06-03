@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>迷你照片攻擊！</title>
+    <title>迷你照片攻擊！(點擊可消滅)</title>
     <style>
         body {
             margin: 0;
@@ -14,28 +14,45 @@
 
         .pop-img {
             position: absolute;
-            /* 陰影稍微縮小，配合變小的圖片 */
             box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.7);
             animation: popIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            /* 把滑鼠游標變成瞄準鏡，增加遊戲感！ */
+            cursor: crosshair; 
         }
 
         @keyframes popIn {
             0% { transform: scale(0); opacity: 0; }
             100% { transform: scale(1); opacity: 1; }
         }
+
+        /* 💥 爆炸動畫特效 */
+        .explode {
+            /* 爆炸時禁止再次點擊 */
+            pointer-events: none; 
+            /* 強制套用爆炸動畫，覆蓋原本的狀態 */
+            animation: blast 0.3s ease-out forwards !important; 
+        }
+
+        @keyframes blast {
+            0% { filter: brightness(1); opacity: 1; transform: scale(1); }
+            /* 變成橘紅色並刺眼放大，模擬火光 */
+            40% { filter: brightness(2) contrast(2) sepia(1) hue-rotate(-50deg) saturate(5); opacity: 0.9; transform: scale(1.5); }
+            /* 繼續放大、變模糊並消失，模擬煙霧散去 */
+            100% { filter: brightness(3) blur(10px); opacity: 0; transform: scale(2.5); }
+        }
     </style>
 </head>
 <body>
 
     <script>
-        const imageSrc = 'joker.jpg';
+        // 這裡已經是你的 joker.jpg 了
+        const imageSrc = 'joker.jpg'; 
 
         function spawnImage() {
             const img = document.createElement('img');
             img.src = imageSrc;
             img.className = 'pop-img';
 
-            // 【修改這裡】尺寸大幅縮小，隨機設定在 50px 到 150px 之間
             const size = Math.floor(Math.random() * 100) + 50;
             img.style.width = size + 'px';
 
@@ -48,17 +65,28 @@
             const rotation = Math.floor(Math.random() * 90) - 45;
             
             setTimeout(() => {
-                img.style.transform = `rotate(${rotation}deg)`;
+                // 如果圖片還沒被打爆，才加上旋轉角度
+                if (!img.classList.contains('explode')) {
+                    img.style.transform = `rotate(${rotation}deg)`;
+                }
             }, 200);
+
+            // 🎯 【新增功能】點擊圖片引發爆炸並消除
+            img.onclick = function() {
+                // 為圖片加上 .explode 的 CSS 類別，觸發爆炸動畫
+                img.classList.add('explode'); 
+                
+                // 等待 0.3 秒（300毫秒）動畫播完後，將圖片從網頁中徹底刪除
+                setTimeout(() => {
+                    img.remove();
+                }, 300);
+            };
 
             document.body.appendChild(img);
         }
 
         spawnImage();
-
-        // 維持每 500 毫秒 (0.5秒) 跳出一張
-        // 若覺得小圖填滿太慢，可以把 500 改成 100 試試看！
-        setInterval(spawnImage, 100);
+        setInterval(spawnImage, 300);
     </script>
 </body>
 </html>
